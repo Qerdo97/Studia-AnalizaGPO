@@ -1,19 +1,39 @@
 #Ustawiamy domyślne formaty kodowania do UTF8 aby poprawnie wyświetlać polskie znaki diakrytyczne
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 $PSDefaultParameterValues['*:Encoding'] = 'utf8'
+$Exercise = "AZ2_Zadanie1"
+$Name = "Grzegorz"
+$LastName = "Sekuła"
+$Group = "IZ08TC1"
+$IndexNumber = "17313"
+$workDir = "c:\WIT\" + $IndexNumber
+$Date = (Get-Date -Format "yyyy-MM-dd_HH:mm:s")
+$fileName = "$($env:COMPUTERNAME)_$($IndexNumber)_$($Date).csv"
+$domain = Get-ADDomain -Current LocalComputer
 
-#Funkcja Author zawiera informacje o autorze tego skrypty
-function Author
+
+function CreateFile
 {
-    Write-Host    "AZ2 Zadanie Analiza GPO"
+    New-Item -Path $workDir -Name $fileName -Force | Out-Null
+    #Header of file
+    Add-Content -Path "$workDir$fileName" -Value "Data wykonania testu: $Date"
+    Add-Content -Path "$workDir$fileName" -Value "Nazwa komputera: $env:COMPUTERNAME"
+    Add-Content -Path "$workDir$fileName" -Value "Sprawdzenie wykonal: $env:UserName"
+}
+
+#Funkcja ShowAuthor wyświetla informacje o autorze tego skrypty
+function ShowAuthor
+{
+    Write-Host    $Exercise
     Write-Host    ""
     Write-Host    "Author:"
-    Write-Host    "Grzegorz Sekuła"
-    Write-Host    "Nr indeksu: 17313"
+    Write-Host    $Name $LastName
+    Write-Host    "Grupa:" $Group
+    Write-Host    "Nr indeksu:" $IndexNumber
 }
 
 #Funkcja odpowiedzialna za wyświetlanie menu
-function Show-Menu
+function ShowMenu
 {
     Clear-Host
     Write-Host "================ MENU ================"
@@ -33,28 +53,28 @@ function Show-Menu
 
 function SecurityOptions
 {
-
+    CreateFile
 }
 
 function UserRightsAssigment
 {
-
+    CreateFile
 }
 
 function WSUSSettings
 {
-
+    CreateFile
 }
 
 function SystemServices
 {
-
+    CreateFile
 }
 
 #Wyświetlenie menu i oczekiwanie na decyzję. Po wybraniu odpowiedniej opcji jest wywoływana odpowiednia funkcja
 do
 {
-    Show-Menu
+    ShowMenu
     $selection = Read-Host "Proszę dokonać wyboru"
     switch ($selection)
     {
@@ -83,7 +103,7 @@ do
         }
         'a' {
             Clear-Host
-            Author
+            ShowAuthor
         }
         'q' {
 
