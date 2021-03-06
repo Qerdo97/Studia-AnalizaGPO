@@ -1,35 +1,34 @@
 #Ustawiamy domyślne formaty kodowania do UTF8 aby poprawnie wyświetlać polskie znaki diakrytyczne
 $PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 $PSDefaultParameterValues['*:Encoding'] = 'utf8'
-$Exercise = "AZ2_Zadanie1"
-$Name = "Grzegorz"
-$LastName = "Sekuła"
-$Group = "IZ08TC1"
-$IndexNumber = "17313"
-$workDir = "c:\WIT\" + $IndexNumber
-$Date = (Get-Date -Format "yyyy-MM-dd_HH:mm:s")
-$fileName = "$($env:COMPUTERNAME)_$($IndexNumber)_$($Date).csv"
-$domain = Get-ADDomain -Current LocalComputer
-
+$exercise = "AZ2_Zadanie1"
+$name = "Grzegorz"
+$lastName = "Sekuła"
+$group = "IZ08TC1"
+$indexNumber = "17313"
+$workDir = "c:\WIT\" + $indexNumber + "\"
+$date = (Get-Date -Format "yyyy-MM-dd_HH-mm-s")
+$fileName = "$($env:COMPUTERNAME)_$($indexNumber)_$($date).csv"
+$user = "$env:USERDOMAIN\$env:USERNAME"
 
 function CreateFile
 {
     New-Item -Path $workDir -Name $fileName -Force | Out-Null
     #Header of file
-    Add-Content -Path "$workDir$fileName" -Value "Data wykonania testu: $Date"
-    Add-Content -Path "$workDir$fileName" -Value "Nazwa komputera: $env:COMPUTERNAME"
-    Add-Content -Path "$workDir$fileName" -Value "Sprawdzenie wykonal: $env:UserName"
+    Add-Content -Path $workDir$fileName -Value "Data wykonania testu: $date"
+    Add-Content -Path $workDir$fileName -Value "Nazwa komputera: $env:COMPUTERNAME"
+    Add-Content -Path $workDir$fileName -Value "Sprawdzenie wykonal: $user"
 }
 
 #Funkcja ShowAuthor wyświetla informacje o autorze tego skrypty
 function ShowAuthor
 {
-    Write-Host    $Exercise
+    Write-Host    $exercise
     Write-Host    ""
     Write-Host    "Author:"
-    Write-Host    $Name $LastName
-    Write-Host    "Grupa:" $Group
-    Write-Host    "Nr indeksu:" $IndexNumber
+    Write-Host    $name $lastName
+    Write-Host    "Grupa:" $group
+    Write-Host    "Nr indeksu:" $indexNumber
 }
 
 #Funkcja odpowiedzialna za wyświetlanie menu
@@ -54,6 +53,9 @@ function ShowMenu
 function SecurityOptions
 {
     CreateFile
+    $adminAcc = "17313_Admin"
+    $guestAcc = "Guest_17313"
+
 }
 
 function UserRightsAssigment
