@@ -36,19 +36,19 @@ function ShowAuthor
 function ShowMenu
 {
     Clear-Host
-    Write-Host "================ MENU ================"
+    Write-Host "========================== MENU =========================="
     Write-Host ""
-    Write-Host "        == Obsługa raportów ==        "
+    Write-Host "                 == Obsługa raportów ==                   "
     Write-Host "1: Wciśnij '1' aby otrzymać raport SECURITY OPTIONS."
     Write-Host "2: Wciśnij '2' aby otrzymać raport USER RIGHTS ASSIGMENT."
     Write-Host "3: Wciśnij '3' aby otrzymać raport WSUS SETTINGS."
     Write-Host "4: Wciśnij '4' aby otrzymać raport USŁUGI SYSTEMOWE."
     Write-Host "5: Wciśnij '5' aby otrzymać raport WSZYSTKIEGO."
-    Write-Host "             == Więcej ==             "
+    Write-Host "                       == Więcej ==                       "
     Write-Host "A: Wciśnij 'A' aby otrzymać informacje o autorze."
     Write-Host "Q: Wciśnij 'Q' aby wyjść."
     Write-Host ""
-    Write-Host "======================================"
+    Write-Host "=========================================================="
 }
 
 function SecurityOptions
