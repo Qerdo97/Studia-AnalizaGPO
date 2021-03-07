@@ -57,10 +57,10 @@ function SecurityOptions
 {
     CreateFile
     Add-Content -Path $workDir\$fileName -Value "=======SecurityOptions======"
-    secedit /export /cfg $workDir\secedit.cfg | Out-Null
+    $secFileName = "secedit.cfg"
+    secedit /export /cfg $workDir\$secFileName | Out-Null
     $adminAccOk = 'NewAdministratorName = "17313_Admin"'
     $guestAccOk = 'NewGuestName = "Guest_17313"'
-    $secFileName = "secedit.cfg"
     $checkAdmin = Get-Content "$workDir\$secFileName" | Select-String -Pattern $adminAccOk
     $checkGuest = Get-Content "$workDir\$secFileName" | Select-String -Pattern $guestAccOk
     if ($adminAccOk = $checkAdmin)
@@ -95,20 +95,54 @@ function UserRightsAssigment
     secedit /export /cfg $workDir\secedit.cfg | Out-Null
     $shutdownNames = "g_it","Domain Admins"
     $shutdownSIDs = @()
-    Foreach ($i in $shutdownNames) {
+    Foreach ($i in $shutdownNames)
+    {
         $SID = (New-Object System.Security.Principal.NTAccount($i)).Translate([System.Security.Principal.SecurityIdentifier]).value
         $shutdownSIDs += $SID
     }
     $backupNames = "g_it"
     $backupSIDs = @()
-    Foreach ($i in $backupNames) {
+    Foreach ($i in $backupNames)
+    {
         $SID = (New-Object System.Security.Principal.NTAccount($i)).Translate([System.Security.Principal.SecurityIdentifier]).value
         $backupSIDs += $SID
     }
     $lookShutdown = "SeShutdownPrivilege"
     $lookBackup = "SeBackupPrivilege"
-    $checkShutdown = Get-Content "$workDir\$secFileName" | Select-String -Pattern $lookShutdown
-    $checkBackup = Get-Content "$workDir\$secFileName" | Select-String -Pattern $lookBackup
+    $checkShutdown = @(((Get-Content "$workDir\$secFileName" | Select-String -Pattern $lookShutdown).ToString()).TrimStart("SeShutdownPrivilege = ")).Replace("*","") -split ","
+    $checkBackup = @(((Get-Content "$workDir\$secFileName" | Select-String -Pattern $lookBackup).ToString()).TrimStart("SeBackupPrivilege = ")).Replace("*","") -split ","
+
+    foreach ($i in $checkShutdown)
+    {
+        $objSID = New-Object System.Security.Principal.SecurityIdentifier ($i)
+        $objUser = ($objSID.Translate([System.Security.Principal.NTAccount])).Value
+        if ($shutdownSIDs -contains $i)
+        {
+            Add-Content -Path $workDir\$fileName -Value "Objekt $objUser posiada prawa do zamknięcia: Zgodne"
+            Write-Host -ForegroundColor Green "Objekt $objUser posiada prawa do zamknięcia: Zgodne"
+        }
+        else
+        {
+            Add-Content -Path $workDir\$fileName -Value "Objekt $objUser posiada prawa do zamknięcia: Niezgodne"
+            Write-Host -ForegroundColor Red "Objekt $objUser posiada prawa do zamknięcia: Niezgodne"
+        }
+    }
+    foreach ($i in $checkBackup)
+    {
+        $objSID = New-Object System.Security.Principal.SecurityIdentifier ($i)
+        $objUser = ($objSID.Translate([System.Security.Principal.NTAccount])).Value
+        if ($backupSIDs -contains $i)
+        {
+            Add-Content -Path $workDir\$fileName -Value "Objekt $objUser posiada prawa do kopii zapasowej: Zgodne"
+            Write-Host -ForegroundColor Green "Objekt $objUser posiada prawa do kopii zapasowej: Zgodne"
+        }
+        else
+        {
+            Add-Content -Path $workDir\$fileName -Value "Objekt $objUser posiada prawa do kopii zapasowej: Niezgodne"
+            Write-Host -ForegroundColor Red "Objekt $objUser posiada prawa do kopii zapasowej: Niezgodne"
+        }
+    }
+    Remove-Item "$workDir\$secFileName" -Force
 }
 
 function WSUSSettings
