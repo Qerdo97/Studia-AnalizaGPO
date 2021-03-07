@@ -317,7 +317,24 @@ function WSUSSettings
 
 function SystemServices
 {
+    Add-Content -Path $workDir\$fileName -Value "========SystemServices======"
+    $expectedAppIDSvcStartType = "Automatic"
+    $actualAppIDSvcStartType = (Get-Service -Name AppIDSvc | Select-Object *).StartType
 
+    if ($expectedAppIDSvcStartType -eq $actualAppIDSvcStartType)
+    {
+        $message = "Usługa Application Identity uruchamia się automatycznie: Zgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Green $message
+    }
+    else
+    {
+        $message = "Usługa Application Identity uruchamia się automatycznie: Niezgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Red $message
+    }
+    Add-Content -Path $workDir\$fileName -Value "============================"
+    Add-Content -Path $workDir\$fileName -Value ""
 }
 
 #Wyświetlenie menu i oczekiwanie na decyzję. Po wybraniu odpowiedniej opcji jest wywoływana odpowiednia funkcja
