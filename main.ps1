@@ -6,7 +6,7 @@ $name = "Grzegorz"
 $lastName = "Sekuła"
 $group = "IZ08TC1"
 $indexNumber = "17313"
-$workDir = "c:\WIT\" + $indexNumber + "\"
+$workDir = "c:\WIT\" + $indexNumber
 $date = (Get-Date -Format "yyyy-MM-dd_HH-mm-s")
 $fileName = "$($env:COMPUTERNAME)_$($indexNumber)_$($date).csv"
 $user = "$env:USERDOMAIN\$env:USERNAME"
@@ -15,9 +15,12 @@ function CreateFile
 {
     New-Item -Path $workDir -Name $fileName -Force | Out-Null
     #Header of file
-    Add-Content -Path $workDir$fileName -Value "Data wykonania testu: $date"
-    Add-Content -Path $workDir$fileName -Value "Nazwa komputera: $env:COMPUTERNAME"
-    Add-Content -Path $workDir$fileName -Value "Sprawdzenie wykonal: $user"
+    Add-Content -Path $workDir\$fileName -Value "============INFO============"
+    Add-Content -Path $workDir\$fileName -Value "Data wykonania testu: $date"
+    Add-Content -Path $workDir\$fileName -Value "Nazwa komputera: $env:COMPUTERNAME"
+    Add-Content -Path $workDir\$fileName -Value "Sprawdzenie wykonal: $user"
+    Add-Content -Path $workDir\$fileName -Value "============================"
+    Add-Content -Path $workDir\$fileName -Value ""
 }
 
 #Funkcja ShowAuthor wyświetla informacje o autorze tego skrypty
@@ -53,14 +56,59 @@ function ShowMenu
 function SecurityOptions
 {
     CreateFile
-    $adminAcc = "17313_Admin"
-    $guestAcc = "Guest_17313"
-
+    Add-Content -Path $workDir\$fileName -Value "=======SecurityOptions======"
+    secedit /export /cfg $workDir\secedit.cfg | Out-Null
+    $adminAccOk = 'NewAdministratorName = "17313_Admin"'
+    $guestAccOk = 'NewGuestName = "Guest_17313"'
+    $secFileName = "secedit.cfg"
+    $checkAdmin = Get-Content "$workDir\$secFileName" | Select-String -Pattern $adminAccOk
+    $checkGuest = Get-Content "$workDir\$secFileName" | Select-String -Pattern $guestAccOk
+    if ($adminAccOk = $checkAdmin)
+    {
+        Add-Content -Path $workDir\$fileName -Value "Nazwa konta administratora: Zgodne"
+        Write-Host -ForegroundColor Green "Nazwa konta administratora: Zgodne"
+    }
+    else
+    {
+        Add-Content -Path $workDir\$fileName -Value "Nazwa konta administratora: Niezgodne"
+        Write-Host -ForegroundColor Red "Nazwa konta administratora: Niezgodne"
+    }
+    if ($guestAccOk = $checkGuest)
+    {
+        Add-Content -Path $workDir\$fileName -Value "Nazwa konta gościa: Zgodne"
+        Write-Host -ForegroundColor Green "Nazwa konta gościa: Zgodne"
+    }
+    else
+    {
+        Add-Content -Path $workDir\$fileName -Value "Nazwa konta gościa: Niezgodne"
+        Write-Host -ForegroundColor Red "Nazwa konta gościa: Niezgodne"
+    }
+    Add-Content -Path $workDir\$fileName -Value "============================"
+    Add-Content -Path $workDir\$fileName -Value ""
+    Remove-Item "$workDir\$secFileName" -Force
 }
 
 function UserRightsAssigment
 {
     CreateFile
+    Add-Content -Path $workDir\$fileName -Value "=====UserRightsAssigment===="
+    secedit /export /cfg $workDir\secedit.cfg | Out-Null
+    $shutdownNames = "g_it","Domain Admins"
+    $shutdownSIDs = @()
+    Foreach ($i in $shutdownNames) {
+        $SID = (New-Object System.Security.Principal.NTAccount($i)).Translate([System.Security.Principal.SecurityIdentifier]).value
+        $shutdownSIDs += $SID
+    }
+    $backupNames = "g_it"
+    $backupSIDs = @()
+    Foreach ($i in $backupNames) {
+        $SID = (New-Object System.Security.Principal.NTAccount($i)).Translate([System.Security.Principal.SecurityIdentifier]).value
+        $backupSIDs += $SID
+    }
+    $lookShutdown = "SeShutdownPrivilege"
+    $lookBackup = "SeBackupPrivilege"
+    $checkShutdown = Get-Content "$workDir\$secFileName" | Select-String -Pattern $lookShutdown
+    $checkBackup = Get-Content "$workDir\$secFileName" | Select-String -Pattern $lookBackup
 }
 
 function WSUSSettings
