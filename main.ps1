@@ -16,7 +16,7 @@ function ManageSecedit
         $State
     )
 
-    $secFileName = "secedit.cfg"
+    $Global:secFileName = "secedit.cfg"
 
     if ($State -eq "run")
     {
@@ -31,7 +31,7 @@ function ManageSecedit
 function CreateFile
 {
     $date = (Get-Date -Format "yyyy-MM-dd_HH-mm-ss")
-    $fileName = "$( $env:COMPUTERNAME )_$( $indexNumber )_$( $date ).csv"
+    $Global:fileName = "$( $env:COMPUTERNAME )_$( $indexNumber )_$( $date ).csv"
     New-Item -Path $workDir -Name $fileName -Force | Out-Null
     #Header of file
     Add-Content -Path $workDir\$fileName -Value "============INFO============"
@@ -82,23 +82,27 @@ function SecurityOptions
     $checkGuest = Get-Content "$workDir\$secFileName" | Select-String -Pattern $guestAccOk
     if ($adminAccOk = $checkAdmin)
     {
-        Add-Content -Path $workDir\$fileName -Value "Nazwa konta administratora: Zgodne"
-        Write-Host -ForegroundColor Green "Nazwa konta administratora: Zgodne"
+        $message = "Nazwa konta administratora: Zgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Green $message
     }
     else
     {
-        Add-Content -Path $workDir\$fileName -Value "Nazwa konta administratora: Niezgodne"
-        Write-Host -ForegroundColor Red "Nazwa konta administratora: Niezgodne"
+        $message = "Nazwa konta administratora: Niezgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Red $message
     }
     if ($guestAccOk = $checkGuest)
     {
-        Add-Content -Path $workDir\$fileName -Value "Nazwa konta gościa: Zgodne"
-        Write-Host -ForegroundColor Green "Nazwa konta gościa: Zgodne"
+        $message = "Nazwa konta gościa: Zgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Green $message
     }
     else
     {
-        Add-Content -Path $workDir\$fileName -Value "Nazwa konta gościa: Niezgodne"
-        Write-Host -ForegroundColor Red "Nazwa konta gościa: Niezgodne"
+        $message = "Nazwa konta gościa: Niezgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Red $message
     }
     Add-Content -Path $workDir\$fileName -Value "============================"
     Add-Content -Path $workDir\$fileName -Value ""
@@ -134,13 +138,15 @@ function UserRightsAssigment
         $objUser = ($objSID.Translate([System.Security.Principal.NTAccount])).Value
         if ($shutdownSIDs -contains $i)
         {
-            Add-Content -Path $workDir\$fileName -Value "Objekt $objUser posiada prawa do zamknięcia: Zgodne"
-            Write-Host -ForegroundColor Green "Objekt $objUser posiada prawa do zamknięcia: Zgodne"
+            $message = "Objekt $objUser posiada prawa do zamknięcia: Zgodne"
+            Add-Content -Path $workDir\$fileName -Value $message
+            Write-Host -ForegroundColor Green $message
         }
         else
         {
-            Add-Content -Path $workDir\$fileName -Value "Objekt $objUser posiada prawa do zamknięcia: Niezgodne"
-            Write-Host -ForegroundColor Red "Objekt $objUser posiada prawa do zamknięcia: Niezgodne"
+            $message = "Objekt $objUser posiada prawa do zamknięcia: Niezgodne"
+            Add-Content -Path $workDir\$fileName -Value $message
+            Write-Host -ForegroundColor Red $message
         }
     }
     foreach ($i in $checkBackup)
@@ -149,13 +155,15 @@ function UserRightsAssigment
         $objUser = ($objSID.Translate([System.Security.Principal.NTAccount])).Value
         if ($backupSIDs -contains $i)
         {
-            Add-Content -Path $workDir\$fileName -Value "Objekt $objUser posiada prawa do kopii zapasowej: Zgodne"
-            Write-Host -ForegroundColor Green "Objekt $objUser posiada prawa do kopii zapasowej: Zgodne"
+            $message = "Objekt $objUser posiada prawa do kopii zapasowej: Zgodne"
+            Add-Content -Path $workDir\$fileName -Value $message
+            Write-Host -ForegroundColor Green $message
         }
         else
         {
-            Add-Content -Path $workDir\$fileName -Value "Objekt $objUser posiada prawa do kopii zapasowej: Niezgodne"
-            Write-Host -ForegroundColor Red "Objekt $objUser posiada prawa do kopii zapasowej: Niezgodne"
+            $message = "Objekt $objUser posiada prawa do kopii zapasowej: Niezgodne"
+            Add-Content -Path $workDir\$fileName -Value $message
+            Write-Host -ForegroundColor Red $message
         }
     }
     Add-Content -Path $workDir\$fileName -Value "============================"
@@ -165,7 +173,146 @@ function UserRightsAssigment
 
 function WSUSSettings
 {
+    Add-Content -Path $workDir\$fileName -Value "=========WSUSSettings======="
+    $expectedUpdateServiceUrlAlternate = "https://witsus.ocean.local"
+    $expectedWUServer = "https://witsus.ocean.local"
+    $expectedWUStatusServer = "https://witsus.ocean.local"
+    $expectedAUOptions = 4
+    $expectedNoAutoUpdate = 0
+    $expectedScheduledInstallDay = 0
+    $expectedScheduledInstallEveryWeek = 1
+    $expectedScheduledInstallTime = 15
+    $expectedUseWUServer = 1
 
+    $actualUpdateServiceUrlAlternate = Get-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name "UpdateServiceUrlAlternate" | Select-Object -ExpandProperty "UpdateServiceUrlAlternate"
+    $actualWUServer = Get-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name "WUServer" | Select-Object -ExpandProperty "WUServer"
+    $actualWUStatusServer = Get-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate -Name "WUStatusServer" | Select-Object -ExpandProperty "WUStatusServer"
+    $actualAUOptions = Get-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name "AUOptions" | Select-Object -ExpandProperty "AUOptions"
+    $actualNoAutoUpdate = Get-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name "NoAutoUpdate" | Select-Object -ExpandProperty "NoAutoUpdate"
+    $actualScheduledInstallDay = Get-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name "ScheduledInstallDay" | Select-Object -ExpandProperty "ScheduledInstallDay"
+    $actualScheduledInstallEveryWeek = Get-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name "ScheduledInstallEveryWeek" | Select-Object -ExpandProperty "ScheduledInstallEveryWeek"
+    $actualScheduledInstallTime = Get-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name "ScheduledInstallTime" | Select-Object -ExpandProperty "ScheduledInstallTime"
+    $actualUseWUServer = Get-ItemProperty -Path HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU -Name "UseWUServer" | Select-Object -ExpandProperty "UseWUServer"
+
+    if ($expectedUseWUServer -eq $actualUseWUServer)
+    {
+        $message = "Włączenie serwera aktualizacji: Zgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Green $message
+    }
+    else
+    {
+        $message = "Włączenie serwera aktualizacji: Niezgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Red $message
+    }
+
+    if ($expectedWUServer -eq $actualWUServer)
+    {
+        $message = "Główny serwer aktualizacji: Zgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Green $message
+    }
+    else
+    {
+        $message = "Główny serwer aktualizacji: Niezgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Red $message
+    }
+
+    if ($expectedUpdateServiceUrlAlternate -eq $actualUpdateServiceUrlAlternate)
+    {
+        $message = "Alternatywny serwer aktualizacji: Zgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Green $message
+    }
+    else
+    {
+        $message = "Alternatywny serwer aktualizacji: Niezgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Red $message
+    }
+
+    if ($expectedWUStatusServer -eq $actualWUStatusServer)
+    {
+        $message = "Serwer statusu aktualizacji: Zgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Green $message
+    }
+    else
+    {
+        $message = "Serwer statusu aktualizacji: Niezgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Red $message
+    }
+
+    if ($expectedAUOptions -eq $actualAUOptions)
+    {
+        $message = "Automatyczne pobieranie i planowanie aktualizacji: Zgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Green $message
+    }
+    else
+    {
+        $message = "Automatyczne pobieranie i planowanie aktualizacji: Niezgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Red $message
+    }
+
+    if ($expectedNoAutoUpdate -eq $actualNoAutoUpdate)
+    {
+        $message = "Wyłączenie automatycznych aktualizacji: Zgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Green $message
+    }
+    else
+    {
+        $message = "Wyłączenie automatycznych aktualizacji: Niezgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Red $message
+    }
+
+    if ($expectedScheduledInstallTime -eq $actualScheduledInstallTime)
+    {
+        $message = "Ustawienie godziny intalacji aktualizacji na godzinę $expectedScheduledInstallTime-00: Zgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Green $message
+    }
+    else
+    {
+        $message = "Ustawienie godziny intalacji aktualizacji na godzinę $expectedScheduledInstallTime-00: Niezgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Red $message
+    }
+
+    if ($expectedScheduledInstallDay -eq $actualScheduledInstallDay)
+    {
+        $message = "Ustawienie instalacji aktualizacji codziennie: Zgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Green $message
+    }
+    else
+    {
+        $message = "Ustawienie instalacji aktualizacji codziennie: Niezgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Red $message
+    }
+
+    if ($expectedScheduledInstallEveryWeek -eq $actualScheduledInstallEveryWeek)
+    {
+        $message = "Ustawienie instalacji aktualizacji tygodniowo: Zgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Green $message
+    }
+    else
+    {
+        $message = "Ustawienie instalacji aktualizacji tygodniowo: Niezgodne"
+        Add-Content -Path $workDir\$fileName -Value $message
+        Write-Host -ForegroundColor Red $message
+    }
+
+    Add-Content -Path $workDir\$fileName -Value "============================"
+    Add-Content -Path $workDir\$fileName -Value ""
 }
 
 function SystemServices
