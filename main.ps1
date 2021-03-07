@@ -142,6 +142,8 @@ function UserRightsAssigment
             Write-Host -ForegroundColor Red "Objekt $objUser posiada prawa do kopii zapasowej: Niezgodne"
         }
     }
+    Add-Content -Path $workDir\$fileName -Value "============================"
+    Add-Content -Path $workDir\$fileName -Value ""
     Remove-Item "$workDir\$secFileName" -Force
 }
 
