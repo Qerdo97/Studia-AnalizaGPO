@@ -7,12 +7,31 @@ $lastName = "Sekuła"
 $group = "IZ08TC1"
 $indexNumber = "17313"
 $workDir = "c:\WIT\" + $indexNumber
-$date = (Get-Date -Format "yyyy-MM-dd_HH-mm-s")
-$fileName = "$($env:COMPUTERNAME)_$($indexNumber)_$($date).csv"
 $user = "$env:USERDOMAIN\$env:USERNAME"
+
+function ManageSecedit
+{
+    param
+    (
+        $State
+    )
+
+    $secFileName = "secedit.cfg"
+
+    if ($State -eq "run")
+    {
+        secedit /export /cfg $workDir\$secFileName | Out-Null
+    }
+    if ($State -eq "stop")
+    {
+        Remove-Item "$workDir\$secFileName" -Force
+    }
+}
 
 function CreateFile
 {
+    $date = (Get-Date -Format "yyyy-MM-dd_HH-mm-ss")
+    $fileName = "$( $env:COMPUTERNAME )_$( $indexNumber )_$( $date ).csv"
     New-Item -Path $workDir -Name $fileName -Force | Out-Null
     #Header of file
     Add-Content -Path $workDir\$fileName -Value "============INFO============"
@@ -55,10 +74,8 @@ function ShowMenu
 
 function SecurityOptions
 {
-    CreateFile
     Add-Content -Path $workDir\$fileName -Value "=======SecurityOptions======"
-    $secFileName = "secedit.cfg"
-    secedit /export /cfg $workDir\$secFileName | Out-Null
+    ManageSecedit -State run
     $adminAccOk = 'NewAdministratorName = "17313_Admin"'
     $guestAccOk = 'NewGuestName = "Guest_17313"'
     $checkAdmin = Get-Content "$workDir\$secFileName" | Select-String -Pattern $adminAccOk
@@ -85,15 +102,14 @@ function SecurityOptions
     }
     Add-Content -Path $workDir\$fileName -Value "============================"
     Add-Content -Path $workDir\$fileName -Value ""
-    Remove-Item "$workDir\$secFileName" -Force
+    ManageSecedit -State stop
 }
 
 function UserRightsAssigment
 {
-    CreateFile
     Add-Content -Path $workDir\$fileName -Value "=====UserRightsAssigment===="
-    secedit /export /cfg $workDir\secedit.cfg | Out-Null
-    $shutdownNames = "g_it","Domain Admins"
+    ManageSecedit -State run
+    $shutdownNames = "g_it", "Domain Admins"
     $shutdownSIDs = @()
     Foreach ($i in $shutdownNames)
     {
@@ -109,8 +125,8 @@ function UserRightsAssigment
     }
     $lookShutdown = "SeShutdownPrivilege"
     $lookBackup = "SeBackupPrivilege"
-    $checkShutdown = @(((Get-Content "$workDir\$secFileName" | Select-String -Pattern $lookShutdown).ToString()).TrimStart("SeShutdownPrivilege = ")).Replace("*","") -split ","
-    $checkBackup = @(((Get-Content "$workDir\$secFileName" | Select-String -Pattern $lookBackup).ToString()).TrimStart("SeBackupPrivilege = ")).Replace("*","") -split ","
+    $checkShutdown = @(((Get-Content "$workDir\$secFileName" | Select-String -Pattern $lookShutdown).ToString()).TrimStart("SeShutdownPrivilege = ")).Replace("*", "") -split ","
+    $checkBackup = @(((Get-Content "$workDir\$secFileName" | Select-String -Pattern $lookBackup).ToString()).TrimStart("SeBackupPrivilege = ")).Replace("*", "") -split ","
 
     foreach ($i in $checkShutdown)
     {
@@ -144,17 +160,17 @@ function UserRightsAssigment
     }
     Add-Content -Path $workDir\$fileName -Value "============================"
     Add-Content -Path $workDir\$fileName -Value ""
-    Remove-Item "$workDir\$secFileName" -Force
+    ManageSecedit -State stop
 }
 
 function WSUSSettings
 {
-    CreateFile
+
 }
 
 function SystemServices
 {
-    CreateFile
+
 }
 
 #Wyświetlenie menu i oczekiwanie na decyzję. Po wybraniu odpowiedniej opcji jest wywoływana odpowiednia funkcja
@@ -166,22 +182,27 @@ do
     {
         '1' {
             Clear-Host
+            CreateFile
             SecurityOptions
         }
         '2' {
             Clear-Host
+            CreateFile
             UserRightsAssigment
         }
         '3' {
             Clear-Host
+            CreateFile
             WSUSSettings
         }
         '4' {
             Clear-Host
+            CreateFile
             SystemServices
         }
         '5' {
             Clear-Host
+            CreateFile
             SecurityOptions
             UserRightsAssigment
             WSUSSettings
